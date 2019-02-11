@@ -1,3 +1,8 @@
+# Stuff Launchcode tutorial told me to put
+.vscode
+.DS_Store
+*.pyc
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
