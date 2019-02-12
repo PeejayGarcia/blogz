@@ -1,5 +1,6 @@
 from flask import Flask, request, redirect, render_template
 from flask_sqlalchemy import SQLAlchemy
+import cgi
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
@@ -14,8 +15,8 @@ class Blog(db.Model):
     body = db.Column(db.String(1000))
     completed = db.Column(db.Boolean)
 
-    def __init__(self, name):
-        self.name = name
+    def __init__(self, title):
+        self.title = title
         self.completed = False
 
 
@@ -24,6 +25,7 @@ def index():
 
     if request.method == 'POST':
         blog_name = request.form['blog']
+        body = request.form['body']
         new_blog = Blog(blog_name)
         db.session.add(new_blog)
         db.session.commit()
