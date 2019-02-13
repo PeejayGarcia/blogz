@@ -13,39 +13,36 @@ class Blog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120))
     body = db.Column(db.String(1000))
-    completed = db.Column(db.Boolean)
 
-    def __init__(self, title):
-        self.title = title
-        self.completed = False
+    def __init__(self, title, body):
+        self.title = title   
+        self.body = body
+
+
+@app.route('/blog', methods=['POST', 'GET'])
+def blog():
+    blogs = Blog.query.all()
+
+    return render_template('blog.html', title="Build-A-Blog", blogs=blogs)
+
+@app.route('/newpost', methods=['POST', 'GET'])  
+def newpost():
+
+    if request.method == 'POST':
+        blog_title = request.form['title']
+        body = request.form['body']
+        new_blog = Blog(blog_title, body)
+        db.session.add(new_blog)
+        db.session.commit()
+
+    encoded_error = request.args.get("error")
+    return render_template('blog.html', title="Build-A-Blog", blog_title=blog_title, 
+        body=body, error=encoded_error and cgi.escape(encoded_error, quote=True))
 
 
 @app.route('/', methods=['POST', 'GET'])
 def index():
-
-    if request.method == 'POST':
-        blog_name = request.form['blog']
-        body = request.form['body']
-        new_blog = Blog(blog_name)
-        db.session.add(new_blog)
-        db.session.commit()
-
-    blogs = Blog.query.filter_by(completed=False).all()
-    completed_blogs = Blog.query.filter_by(completed=True).all()
-    return render_template('todos.html', title="Build-A-Blog", 
-        blogs=blogs, completed_blogs=completed_blogs)
-
-
-@app.route('/delete-blog', methods=['POST'])
-def delete_blog():
-
-    blog_id = int(request.form['blog-id'])
-    blog = Blog.query.get(blog_id)
-    blog.completed = True
-    db.session.add(blog)
-    db.session.commit()
-
-    return redirect('/')    
+    return redirect('/blog')
 
 
 if __name__ == '__main__':
