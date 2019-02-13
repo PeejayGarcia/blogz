@@ -27,7 +27,8 @@ def blog():
 
 @app.route('/newpost', methods=['POST', 'GET'])  
 def newpost():
-
+    blogs = Blog.query.all()
+    
     if request.method == 'POST':
         blog_title = request.form['title']
         body = request.form['body']
@@ -35,9 +36,12 @@ def newpost():
         db.session.add(new_blog)
         db.session.commit()
 
-    encoded_error = request.args.get("error")
-    return render_template('blog.html', title="Build-A-Blog", blog_title=blog_title, 
-        body=body, error=encoded_error and cgi.escape(encoded_error, quote=True))
+        encoded_error = request.args.get("error")
+
+        return render_template('blog.html', title="Build-A-Blog", blogs=blogs, blog_title=blog_title, 
+            body=body, error=encoded_error and cgi.escape(encoded_error, quote=True))
+    
+    return render_template('newpost.html', blogs=blogs)
 
 
 @app.route('/', methods=['POST', 'GET'])
