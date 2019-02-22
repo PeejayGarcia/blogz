@@ -4,7 +4,7 @@ import cgi
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://build-a-blog:build-a-blog@localhost:8889/build-a-blog'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://blogz:blogz@localhost:8889/blogz'
 app.config['SQLALCHEMY_ECHO'] = True
 db = SQLAlchemy(app)
 
@@ -21,9 +21,18 @@ class Blog(db.Model):
 
 @app.route('/blog', methods=['POST', 'GET'])
 def blog():
-    blogs = Blog.query.all()
+    view = 'default'
+    blogs = []
+    if request.args:
+        id = request.args.get('id')
+        blogs.append(Blog.query.get(id))
+        view = 'single'
+    else:
+        blogs = Blog.query.all()
 
-    return render_template('blog.html', title="Build-A-Blog", blogs=blogs)
+
+    return render_template('blog.html', title="Blogz", blogs=blogs, view=view)
+
 
 @app.route('/newpost', methods=['POST', 'GET'])  
 def newpost():
@@ -38,7 +47,7 @@ def newpost():
 
         encoded_error = request.args.get("error")
 
-        return render_template('blog.html', title="Build-A-Blog", blogs=blogs, blog_title=blog_title, 
+        return render_template('blog.html', title="Blogz", blogs=blogs, blog_title=blog_title, 
             body=body, error=encoded_error and cgi.escape(encoded_error, quote=True))
     
     return render_template('newpost.html', blogs=blogs)
