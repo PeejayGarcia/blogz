@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect, render_template
+from flask import Flask, request, redirect, render_template, session, flash
 from flask_sqlalchemy import SQLAlchemy
 import cgi
 
@@ -13,10 +13,19 @@ class Blog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120))
     body = db.Column(db.String(1000))
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
-    def __init__(self, title, body):
+    def __init__(self, title, body, owner):
         self.title = title   
         self.body = body
+        self.owner = owner
+
+class User(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(120), unique=True)
+    password = db.Column(db.String(120))
+    blogs = db.relationship('Blog', backref='owner')
 
 
 @app.route('/blog', methods=['POST', 'GET'])
@@ -37,7 +46,8 @@ def blog():
 @app.route('/newpost', methods=['POST', 'GET'])  
 def newpost():
     blogs = Blog.query.all()
-    
+    owner = User.query.filter_by(username=session['username']).first()
+
     if request.method == 'POST':
         blog_title = request.form['title']
         body = request.form['body']
