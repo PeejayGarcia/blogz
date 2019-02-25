@@ -27,17 +27,28 @@ class User(db.Model):
     password = db.Column(db.String(120))
     blogs = db.relationship('Blog', backref='owner')
 
+    def __init__(self, email, password, blogs):
+        self.email = email
+        self.password = password
+        self.blogs = blogs
+
 
 @app.route('/blog', methods=['POST', 'GET'])
 def blog():
     view = 'default'
     blogs = []
+
     if request.args:
         id = request.args.get('id')
-        blogs.append(Blog.query.get(id))
-        view = 'single'
+        username = request.args.get('user')
+        if id:
+            blogs.append(Blog.query.get(id))
+            view = 'single'
+        else:
+            owner = User.query.filter_by(username = username).first()
+            blogs = Blog.query.filter_by(owner = owner).all()
     else:
-        blogs = Blog.query.all()
+        blogs = Blog.query.all()    
 
 
     return render_template('blog.html', title="Blogz", blogs=blogs, view=view)
