@@ -21,16 +21,14 @@ class Blog(db.Model):
         self.owner = owner
 
 class User(db.Model):
-
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(120), unique=True)
+    username = db.Column(db.String(120), unique = True)
     password = db.Column(db.String(120))
     blogs = db.relationship('Blog', backref='owner')
 
-    def __init__(self, email, password, blogs):
-        self.email = email
+    def __init__(self, username, password):
+        self.username = username
         self.password = password
-        self.blogs = blogs
 
 
 @app.route('/blog', methods=['POST', 'GET'])
@@ -56,7 +54,6 @@ def blog():
 
 @app.route('/newpost', methods=['POST', 'GET'])  
 def newpost():
-    blogs = Blog.query.all()
     owner = User.query.filter_by(username=session['username']).first()
 
     if request.method == 'POST':
@@ -68,7 +65,7 @@ def newpost():
 
         encoded_error = request.args.get("error")
 
-        return render_template('blog.html', title="Blogz", blogs=blogs, blog_title=blog_title, 
+        return render_template('newpost.html', title="Blogz", blogs=blogs, blog_title=blog_title, 
             body=body, error=encoded_error and cgi.escape(encoded_error, quote=True))
     
     return render_template('newpost.html', blogs=blogs)
