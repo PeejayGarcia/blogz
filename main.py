@@ -41,7 +41,7 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        user = User.query.filter_by(email=email).first()
+        user = User.query.filter_by(username=username).first()
         if user and user.password == password:
             session['username'] = username
             flash("Logged in.")
@@ -50,7 +50,6 @@ def login():
         else:
             flash('User password incorrect, or user does not exist', 'error')
 
-
     return render_template('login.html')
 
 
@@ -58,22 +57,18 @@ def login():
 @app.route('/signup', methods=['POST', 'GET'])
 def signup():
     if request.method == 'POST':
-        email = request.form['email']
+        username = request.form['username']
         password = request.form['password']
         verify = request.form['verify']
 
-
-        # TODO - validate user's data
-
-        existing_user = User.query.filter_by(email=email).first()
+        existing_user = User.query.filter_by(username=username).first()
         if not existing_user:
-            new_user = User(email,password)
+            new_user = User(username, password)
             db.session.add(new_user)
             db.session.commit()
-            session['email'] = email
+            session['username'] = username
             return redirect('/')
         else:
-            # TODO - user better response messaging
             return "<h1>Duplicate user</h1>"
         
     return render_template('register.html')
