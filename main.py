@@ -67,15 +67,18 @@ def signup():
         # TODO - validate user's data
 
         existing_user = User.query.filter_by(username=username).first()
-        if not existing_user:
+        if existing_user:
+            flash('Duplicate User')
+        elif len(username) < 3 or len(password) < 3:
+            flash('Invalid username or password.')
+        elif password != verify:
+            flash('Passwords do not match.')
+        elif not existing_user and password == verify:
             new_user = User(username, password)
             db.session.add(new_user)
             db.session.commit()
             session['username'] = username
-            return redirect('/')
-        else:
-            # TODO - user better response messaging
-            return "<h1>Duplicate user</h1>"
+            return redirect('/newpost')
         
     return render_template('signup.html', username = username)
 
