@@ -67,7 +67,7 @@ def signup():
             db.session.add(new_user)
             db.session.commit()
             session['username'] = username
-            return redirect('/')
+            return redirect('/newpost')
         else:
             return "<h1>Duplicate user</h1>"
         
