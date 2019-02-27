@@ -7,6 +7,7 @@ app.config['DEBUG'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://blogz:blogz@localhost:8889/blogz'
 app.config['SQLALCHEMY_ECHO'] = True
 db = SQLAlchemy(app)
+app.secret_key = 'Ampongan'
 
 class Blog(db.Model): 
 
@@ -29,6 +30,54 @@ class User(db.Model):
     def __init__(self, username, password):
         self.username = username
         self.password = password
+
+
+@app.before.reque
+
+
+
+@app.route('/login', methods=['POST', 'GET'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        user = User.query.filter_by(email=email).first()
+        if user and user.password == password:
+            session['username'] = username
+            flash("Logged in.")
+            print(session)
+            return redirect('/')
+        else:
+            flash('User password incorrect, or user does not exist', 'error')
+
+
+    return render_template('login.html')
+
+
+
+@app.route('/signup', methods=['POST', 'GET'])
+def signup():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        verify = request.form['verify']
+
+
+        # TODO - validate user's data
+
+        existing_user = User.query.filter_by(email=email).first()
+        if not existing_user:
+            new_user = User(email,password)
+            db.session.add(new_user)
+            db.session.commit()
+            session['email'] = email
+            return redirect('/')
+        else:
+            # TODO - user better response messaging
+            return "<h1>Duplicate user</h1>"
+        
+    return render_template('register.html')
+
 
 
 @app.route('/blog', methods=['POST', 'GET'])
