@@ -7,6 +7,7 @@ app.config['DEBUG'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://blogz:blogz@localhost:8889/blogz'
 app.config['SQLALCHEMY_ECHO'] = True
 db = SQLAlchemy(app)
+app.secret_key = 'Ampongan'
 
 class Blog(db.Model): 
 
@@ -30,9 +31,11 @@ class User(db.Model):
         self.username = username
         self.password = password
 
-
-@app.before.reque
-
+app.before_request
+def require_login():
+    allowed_routes = ['login', 'signup', 'blog', 'index']
+    if request.endpoint not in allowed_routes and 'username' not in session:
+        return redirect('/login')
 
 
 @app.route('/login', methods=['POST', 'GET'])
@@ -45,7 +48,7 @@ def login():
             session['username'] = username
             flash("Logged in.")
             print(session)
-            return redirect('/')
+            return redirect('/newpost')
         else:
             flash('User password incorrect, or user does not exist', 'error')
 
@@ -55,10 +58,13 @@ def login():
 
 @app.route('/signup', methods=['POST', 'GET'])
 def signup():
+    username = ""
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
         verify = request.form['verify']
+
+        # TODO - validate user's data
 
         existing_user = User.query.filter_by(username=username).first()
         if not existing_user:
@@ -66,8 +72,9 @@ def signup():
             db.session.add(new_user)
             db.session.commit()
             session['username'] = username
-            return redirect('/newpost')
+            return redirect('/')
         else:
+            # TODO - user better response messaging
             return "<h1>Duplicate user</h1>"
         
     return render_template('register.html')
@@ -112,6 +119,13 @@ def newpost():
             body=body, error=encoded_error and cgi.escape(encoded_error, quote=True))
     
     return render_template('newpost.html', blogs=blogs)
+
+
+@app.route('/logout')
+def logout():
+    del session['username']
+    return redirect('/blog')
+
 
 
 @app.route('/', methods=['POST', 'GET'])
