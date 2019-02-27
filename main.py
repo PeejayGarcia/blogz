@@ -130,7 +130,8 @@ def logout():
 
 @app.route('/', methods=['POST', 'GET'])
 def index():
-    return redirect('/blog')
+    users = User.query.all()
+    return render_template('index.html', title="Users", users=users)
 
 
 if __name__ == '__main__':
