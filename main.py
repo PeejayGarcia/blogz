@@ -31,7 +31,7 @@ class User(db.Model):
         self.username = username
         self.password = password
 
-app.before_request
+@app.before_request
 def require_login():
     allowed_routes = ['login', 'signup', 'blog', 'index']
     if request.endpoint not in allowed_routes and 'username' not in session:
@@ -77,7 +77,7 @@ def signup():
             # TODO - user better response messaging
             return "<h1>Duplicate user</h1>"
         
-    return render_template('register.html')
+    return render_template('signup.html', username = username)
 
 
 
@@ -104,22 +104,31 @@ def blog():
 
 @app.route('/newpost', methods=['POST', 'GET'])  
 def newpost():
-    owner = User.query.filter_by(username=session['username']).first()
+    title = ""
+    title_error = ""
+    body = ""
+    body_error = ""
+    owner = User.query.filter_by(username = session['username']).first()
 
     if request.method == 'POST':
-        blog_title = request.form['title']
+        title = request.form['title']
         body = request.form['body']
-        new_blog = Blog(blog_title, body)
-        db.session.add(new_blog)
-        db.session.commit()
 
-        encoded_error = request.args.get("error")
-
-        return render_template('newpost.html', title="Blogz", blogs=blogs, blog_title=blog_title, 
-            body=body, error=encoded_error and cgi.escape(encoded_error, quote=True))
+        if not len(title) > 0:
+            title_error = "Title must contain a value"
+            
+        if not len(body) > 0:
+            body_error = "Body must contian a value"
+         
+        if not(title_error) and not(body_error):
+            new_post = Blog(title = title, body = body, owner = owner )
+            db.session.add(new_post)
+            db.session.commit()
+            db.session.refresh(new_post)
+            return redirect('/blog?id='+ str(new_post.id))            
     
-    return render_template('newpost.html', blogs=blogs)
-
+    return render_template('newpost.html', page_title = "Add A Post", title = title, 
+        title_error = title_error, body = body, body_error = body_error) 
 
 @app.route('/logout')
 def logout():
@@ -131,7 +140,7 @@ def logout():
 @app.route('/', methods=['POST', 'GET'])
 def index():
     users = User.query.all()
-    return render_template('index.html', title="Users", users=users)
+    return render_template('index.html', title="Blogz", users=users)
 
 
 if __name__ == '__main__':
